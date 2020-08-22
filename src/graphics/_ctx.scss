@@ -1,0 +1,131 @@
+@use './image';
+
+@function create($width, $height, $num-colors: 16) {
+  $image: image.create($width, $height, $num-colors);
+  @return (
+    image: $image,
+    color: 1,
+  );
+}
+
+@function to-image($ctx) {
+  @return map-get($ctx, image);
+}
+
+@function active-color($ctx, $color-index) {
+  @return map-merge($ctx, (color: $color-index));
+}
+
+@function set-palette-color($ctx, $index, $color: (0, 0, 0)) {
+  $image: map-get($ctx, image);
+  $image: image.set-palette-color($image, $index, $color);
+  @return map-merge($ctx, (image: $image));
+}
+
+// draw a bresenham line
+@function line($ctx, $x0, $y0, $x1, $y1) {
+  $image: map-get($ctx, image);
+  $color: map-get($ctx, color);
+  $image: _plot-line($image, $color, $x0, $y0, $x1, $y1);
+  @return map-merge($ctx, (image: $image));
+}
+
+@function polyline($ctx, $points) {
+  $image: map-get($ctx, image);
+  $color: map-get($ctx, color);
+  $image: _plot-polyline($image, $color, $points);
+  @return map-merge($ctx, (image: $image));
+}
+
+@function circle($ctx, $cx, $cy, $r) {
+  $image: map-get($ctx, image);
+  $color: map-get($ctx, color);
+  $image: _plot-circle($image, $color, $cx, $cy, $r);
+  @return map-merge($ctx, (image: $image));
+}
+
+// bresenham line func
+// ref: https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+@function _plot-line($image, $color-index, $x0, $y0, $x1, $y1) {
+  $dx: abs($x1 - $x0);
+  $dy: abs($y1 - $y0);
+  $sx: -1;
+  $sy: -1;
+  @if $x0 < $x1 {
+    $sx: 1;
+  }
+  @if $y0 < $y1 {
+    $sy: 1;
+  }
+  $err: $dx - $dy;
+  $e2: 0;
+  $loop: true;
+  @while $loop {
+    $image: image.set-pixel($image, $x0, $y0, $color-index);
+    @if $x0 == $x1 and $y0 == $y1 {
+      $loop: false;
+    }
+    $e2: 2 * $err;
+    @if ($e2 > -$dy) { 
+      $err: $err - $dy;
+      $x0: $x0 + $sx;
+    }
+    @if ($e2 < $dx) {
+      $err: $err + $dx;
+      $y0: $y0 + $sy;
+    }
+  }
+  @return $image;
+}
+
+// draw a closed polygon between a series of points
+@function _plot-polyline($image, $color-index, $points: ()) {
+  $start-x: -1;
+  $start-y: -1;
+  $prev-x: -1;
+  $prev-y: -1;
+  @for $i from 1 through length($points) {
+    $curr-point: nth($points, $i);
+    $x: nth($curr-point, 1);
+    $y: nth($curr-point, 2);
+    @if $i > 1 {
+      $image: _plot-line($image, $color-index, $prev-x, $prev-y, $x, $y);
+    }
+    @else {
+      $start-x: $x;
+      $start-y: $y;
+    }
+    $prev-x: $x;
+    $prev-y: $y;
+  }
+  $image: _plot-line($image, $color-index, $prev-x, $prev-y, $start-x, $start-y);
+  @return $image;
+}
+
+// midpoint circle algo
+// ref: https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+@function _plot-circle($image, $color-index, $x0, $y0, $radius) {
+  $x: $radius;
+  $y: 0;
+  $err: 1 - $x;
+  @while $x >= $y {
+    $image: image.set-pixel($image, $x + $x0, $y + $y0, $color-index);
+    $image: image.set-pixel($image, $y + $x0, $x + $y0, $color-index);
+    $image: image.set-pixel($image, -$x + $x0, $y + $y0, $color-index);
+    $image: image.set-pixel($image, -$y + $x0, $x + $y0, $color-index);
+    $image: image.set-pixel($image, -$x + $x0, -$y + $y0, $color-index);
+    $image: image.set-pixel($image, -$y + $x0, -$x + $y0, $color-index);
+    $image: image.set-pixel($image, $x + $x0, -$y + $y0, $color-index);
+    $image: image.set-pixel($image, $y + $x0, -$x + $y0, $color-index);
+    $y: $y + 1;
+    
+    @if $err < 0 {
+      $err: $err + 2 * $y + 1;
+    }
+    @else {
+      $x: $x - 1;
+      $err: $err + 2 * ($y - $x + 1);
+    }
+  }
+  @return $image;
+}

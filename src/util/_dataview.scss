@@ -1,0 +1,92 @@
+@use '../encoding/ascii';
+@use './bytearray';
+@use './bitwise' as bw;
+
+// loosely inspired by javascript's dataview except it manages pointer position for you
+// only little endian byte order and unsigned ints are implemented at the moment
+
+@function alloc($size) {
+  @return from-bytearray(bytearray.alloc($size));
+}
+
+@function from-bytearray($bytearray) {
+  @return (
+    ptr: 1, // arrays start at 0 in scss
+    bytes: $bytearray
+  );
+}
+
+@function to-bytearray($dataview) {
+  @return map-get($dataview, bytes);
+}
+
+@function seek($dataview, $offset) {
+  @return map-merge($dataview, (ptr: $offset + 1));
+}
+
+@function set-bytes($dataview, $src: ()) {
+  $ptr: map-get($dataview, ptr);
+  $bytes: map-get($dataview, bytes);
+  @for $i from 0 to length($src) {
+    $bytes: set-nth($bytes, $ptr + $i, nth($src, $i + 1));
+  }
+  @return map-merge($dataview, (
+    ptr: $ptr + length($src),
+    bytes: $bytes
+  ));
+}
+
+@function set-uint8($dataview, $value: 0) {
+  $ptr: map-get($dataview, ptr);
+  $bytes: map-get($dataview, bytes);
+  $bytes: set-nth($bytes, $ptr, $value);
+  @return map-merge($dataview, (
+    ptr: $ptr + 1,
+    bytes: $bytes
+  ));
+}
+
+@function set-uint16($dataview, $value: 0) {
+  $ptr: map-get($dataview, ptr);
+  $bytes: map-get($dataview, bytes);
+  $b1: bw.AND($value, 255);
+  $b2: bw.AND(bw.RSHIFT($value, 8), 255);
+  $bytes: set-nth($bytes, $ptr, $b1);
+  $bytes: set-nth($bytes, $ptr + 1, $b2);
+  @return map-merge($dataview, (
+    ptr: $ptr + 2,
+    bytes: $bytes
+  ));
+}
+
+@function set-uint32($dataview, $value: 0) {
+  $ptr: map-get($dataview, ptr);
+  $bytes: map-get($dataview, bytes);
+  $b1: bw.AND($value, 255);
+  $b2: bw.AND(bw.RSHIFT($value, 8), 255);
+  $b3: bw.AND(bw.RSHIFT($value, 16), 255);
+  $b4: bw.AND(bw.RSHIFT($value, 24), 255);
+  $bytes: set-nth($bytes, $ptr, $b1);
+  $bytes: set-nth($bytes, $ptr + 1, $b2);
+  $bytes: set-nth($bytes, $ptr + 2, $b3);
+  $bytes: set-nth($bytes, $ptr + 3, $b4);
+  @return map-merge($dataview, (
+    ptr: $ptr + 4,
+    bytes: $bytes
+  ));
+}
+
+@function set-ascii($dataview, $str: '') {
+  $ptr: map-get($dataview, ptr);
+  $bytes: map-get($dataview, bytes);
+  $str-size: str-length($str);
+  @for $i from 0 to $str-size {
+    $char: str-slice($str, $i + 1, $i + 1);
+    $code: ascii.code($char);
+    $bytes: set-nth($bytes, $ptr + $i, $code);
+  }
+  @return map-merge($dataview, (
+    ptr: $ptr + $str-size,
+    bytes: $bytes
+  ));
+}

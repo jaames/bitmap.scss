@@ -1,0 +1,27 @@
+@use 'sass:math';
+
+// refs: 
+// https://en.wikipedia.org/wiki/Bitwise_operation#Mathematical_equivalents
+// https://scratch.mit.edu/discuss/topic/97026/
+
+@function AND($n1, $n2) {
+  $byte-val: 1;
+  $result: 0;
+  @while ($n1 > 0 or $n2 > 0) {
+    @if $n1 % 2 == 1 and $n2 % 2 == 1 {
+      $result: $result + $byte-val;
+    }
+    $n1: math.floor($n1 / 2);
+    $n2: math.floor($n2 / 2);
+    $byte-val: $byte-val * 2;
+  }
+  @return $result;
+}
+
+@function LSHIFT($x, $y) {
+  @return $x * math.pow(2, $y);
+}
+
+@function RSHIFT($x, $y) {
+  @return math.floor($x / math.pow(2, $y));
+}

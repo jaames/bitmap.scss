@@ -1,0 +1,14 @@
+@function alloc($size: 1, $fill_value: 0) {
+  $result: ();
+  @for $i from 1 through $size {
+    $result: append($result, $fill_value);
+  }
+  @return $result;
+}
+
+@function fill($src: (), $fill_value: 0) {
+  @for $i from 1 through length($src) {
+    $src: set-nth($src, $i, $fill_value);
+  }
+  @return $src;
+}

@@ -1,0 +1,43 @@
+// reference: https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64
+
+@use '../util/bytearray';
+@use '../util/bitwise' as bw;
+
+$_alphabet: (
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 
+  'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 
+  'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 
+  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
+);
+
+@function encode-bytes($bytearray: ()) {
+  $result: '';
+  $padding: '';
+  $pad-size: length($bytearray) % 3;
+  // add a right zero pad to make this string a multiple of 3 characters
+  @if $pad-size > 0 {
+    @for $i from $pad-size to 3 {
+      $padding: $padding + '=';
+      $bytearray: append($bytearray, 0);
+    }
+  }
+  $src-size: length($bytearray);
+  $i: 1;
+  @while $i < $src-size {
+    $n: bw.LSHIFT(nth($bytearray, $i), 16) + bw.LSHIFT(nth($bytearray, $i + 1), 8) + nth($bytearray, $i + 2);
+    $a: bw.AND(bw.RSHIFT($n, 18), 63);
+    $b: bw.AND(bw.RSHIFT($n, 12), 63);
+    $c: bw.AND(bw.RSHIFT($n, 6), 63);
+    $d: bw.AND($n, 63);
+    // alphabet lookup and append to string
+    $result: $result + nth($_alphabet, $a + 1) + nth($_alphabet, $b + 1) + nth($_alphabet, $c + 1) + nth($_alphabet, $d + 1);
+    $i: $i + 3;
+  }
+  @return str-slice($result, 1, -(str-length($padding) + 1)) + $padding;
+}
+
+@function encode-dataview($view) {
+  $bytes: dataview.to-bytearray($view);
+  @return encode-bytes($bytes);
+}

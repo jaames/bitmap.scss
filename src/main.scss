@@ -1,0 +1,27 @@
+
+@use './graphics/image';
+@use './graphics/ctx';
+@use './io/bmp';
+
+// create 64x64 drawing context w/ 16 colors
+$ctx: ctx.create(64, 64, 16);
+// set up palette
+$ctx: ctx.set-palette-color($ctx, 0, (255, 255, 255));
+$ctx: ctx.set-palette-color($ctx, 1, (0, 0, 0));
+$ctx: ctx.set-palette-color($ctx, 2, (255, 0, 0));
+$ctx: ctx.set-palette-color($ctx, 3, (0, 255, 0));
+$ctx: ctx.set-palette-color($ctx, 3, (0, 0, 255));
+
+// draw line
+$ctx: ctx.line($ctx, 0, 0, 20, 20);
+
+// change color and draw circle
+$ctx: ctx.active-color($ctx, 2);
+$ctx: ctx.circle($ctx, 20, 20, 20);
+
+$image: ctx.to-image($ctx);
+
+body {
+  background-image: bmp.encode-to-dataurl($image);
+}
+
