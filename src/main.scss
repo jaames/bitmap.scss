@@ -6,22 +6,38 @@
 // create 64x64 drawing context w/ 16 colors
 $ctx: ctx.create(64, 64, 16);
 // set up palette
-$ctx: ctx.set-palette-color($ctx, 0, (255, 255, 255));
-$ctx: ctx.set-palette-color($ctx, 1, (0, 0, 0));
-$ctx: ctx.set-palette-color($ctx, 2, (255, 0, 0));
-$ctx: ctx.set-palette-color($ctx, 3, (0, 255, 0));
-$ctx: ctx.set-palette-color($ctx, 3, (0, 0, 255));
+$ctx: ctx.set-palette-color($ctx, 0, #fff);
+$ctx: ctx.set-palette-color($ctx, 1, #000);
+$ctx: ctx.set-palette-color($ctx, 2, #f00);
+$ctx: ctx.set-palette-color($ctx, 3, #0f0);
+$ctx: ctx.set-palette-color($ctx, 4, #00f);
 
 // draw line
 $ctx: ctx.line($ctx, 0, 0, 20, 20);
 
 // change color and draw circle
-$ctx: ctx.active-color($ctx, 2);
+$ctx: ctx.set-active-color($ctx, 2);
 $ctx: ctx.circle($ctx, 20, 20, 20);
 
+// change color and draw circle
+$ctx: ctx.set-active-color($ctx, 3);
+$ctx: ctx.circle($ctx, 30, 30, 20);
+
+$ctx: ctx.set-active-color($ctx, 1);
+$ctx: ctx.rect($ctx, 1, 1, 4, 4);
+// $ctx: ctx.circle($ctx, 40, 40, 20);
+
+// extract image from drawing contect
 $image: ctx.to-image($ctx);
 
+// encode image as a bitmap dataurl
+$data: bmp.encode-to-dataurl($image);
+
 body {
-  background-image: bmp.encode-to-dataurl($image);
+  background-image: $data;
+  background-size: #{ map-get($image, width) * 4 }px, #{ map-get($image, height) * 4 }px;
+  image-rendering: auto;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
 }
 

@@ -10,17 +10,13 @@
   );
 }
 
-@function set-palette-color($image, $index, $color: (0, 0, 0)) {
+@function set-palette-color($image, $index, $color) {
   $palette: map-get($image, palette);
   $ptr: $index * 4;
-  $a: 255;
-  $r: nth($color, 1);
-  $g: nth($color, 2);
-  $b: nth($color, 3);
-  $palette: set-nth($palette, $ptr + 1, $b);
-  $palette: set-nth($palette, $ptr + 2, $g);
-  $palette: set-nth($palette, $ptr + 3, $r);
-  $palette: set-nth($palette, $ptr + 4, $a);
+  $palette: set-nth($palette, $ptr + 1, blue($color));
+  $palette: set-nth($palette, $ptr + 2, green($color));
+  $palette: set-nth($palette, $ptr + 3, red($color));
+  $palette: set-nth($palette, $ptr + 4, alpha($color));
   @return map-merge($image, (palette: $palette));
 }
 
@@ -38,83 +34,4 @@
   $ptr: $y * $width + $x;
   $pixels: set-nth($pixels, $ptr + 1, $color-index);
   @return map-merge($image, (pixels: $pixels));
-}
-
-// bresenham line func
-@function draw-line($image, $color-index, $x0, $y0, $x1, $y1) {
-  $dx: abs($x1 - $x0);
-  $dy: abs($y1 - $y0);
-  $sx: -1;
-  $sy: -1;
-  @if $x0 < $x1 {
-    $sx: 1;
-  }
-  @if $y0 < $y1 {
-    $sy: 1;
-  }
-  $err: $dx - $dy;
-  $e2: 0;
-  $loop: true;
-  @while $loop {
-    $image: set-pixel($image, $x0, $y0, $color-index);
-    @if $x0 == $x1 and $y0 == $y1 {
-      $loop: false;
-    }
-    $e2: 2 * $err;
-    @if ($e2 > -$dy) { 
-      $err: $err - $dy;
-      $x0: $x0 + $sx;
-    }
-    @if ($e2 < $dx) {
-      $err: $err + $dx;
-      $y0: $y0 + $sy;
-    }
-  }
-  @return $image;
-}
-
-// draw a closed polygon between a series of points
-@function draw-polyline($image, $color-index, $points: ()) {
-  $start-x: -1;
-  $start-y: -1;
-  $prev-x: -1;
-  $prev-y: -1;
-  @for $i from 1 through length($points) {
-    $curr-point: nth($points, $i);
-    $x: nth($curr-point, 1);
-    $y: nth($curr-point, 2);
-    @if $i > 1 {
-      $image: draw-line($image, $color-index, $prev-x, $prev-y, $x, $y);
-    }
-    @else {
-      $start-x: $x;
-      $start-y: $y;
-    }
-    $prev-x: $x;
-    $prev-y: $y;
-  }
-  $image: draw-line($image, $color-index, $prev-x, $prev-y, $start-x, $start-y);
-  @return $image;
-}
-
-@function draw-circle($image, $color-index, $x0, $y0, $radius) {
-  $x: -$radius;
-  $y: 0;
-  $err: 2 - 2 * $radius;
-  @while ($x < 0) {
-    $image: set-pixel($image, $x0 - $x, $y0 + $y, $color-index);
-    $image: set-pixel($image, $x0 - $y, $y0 - $x, $color-index);
-    $image: set-pixel($image, $x0 + $x, $y0 - $y, $color-index);
-    $image: set-pixel($image, $x0 + $y, $y0 + $x, $color-index);
-    $radius: $err;
-    @if $radius <= $y {
-      $y: $y + 1;
-      $err: $y + ($y * 2 + 1);
-    }
-    @if $radius > $x or $err > $y {
-      $x: $x + 1;
-      $err: $x + ($x * 2 + 1);
-    }
-  }
-  @return $image;
 }

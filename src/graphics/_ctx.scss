@@ -12,21 +12,27 @@
   @return map-get($ctx, image);
 }
 
-@function active-color($ctx, $color-index) {
+@function set-active-color($ctx, $color-index) {
   @return map-merge($ctx, (color: $color-index));
 }
 
-@function set-palette-color($ctx, $index, $color: (0, 0, 0)) {
+@function set-palette-color($ctx, $index, $color) {
   $image: map-get($ctx, image);
   $image: image.set-palette-color($image, $index, $color);
   @return map-merge($ctx, (image: $image));
 }
 
-// draw a bresenham line
 @function line($ctx, $x0, $y0, $x1, $y1) {
   $image: map-get($ctx, image);
   $color: map-get($ctx, color);
   $image: _plot-line($image, $color, $x0, $y0, $x1, $y1);
+  @return map-merge($ctx, (image: $image));
+}
+
+@function rect($ctx, $x0, $y0, $w, $h) {
+  $image: map-get($ctx, image);
+  $color: map-get($ctx, color);
+  $image: _plot-rectangle($image, $color, $x0, $y0, $w, $h);
   @return map-merge($ctx, (image: $image));
 }
 
@@ -78,7 +84,7 @@
   @return $image;
 }
 
-// draw a closed polygon between a series of points
+// stroke a closed polygon between a series of points
 @function _plot-polyline($image, $color-index, $points: ()) {
   $start-x: -1;
   $start-y: -1;
@@ -99,6 +105,22 @@
     $prev-y: $y;
   }
   $image: _plot-line($image, $color-index, $prev-x, $prev-y, $start-x, $start-y);
+  @return $image;
+}
+
+@function _plot-rectangle($image, $color-index, $x0, $y0, $w, $h) {
+  $x1: ($x0 + $w) - 1;
+  $y1: ($y0 + $h) - 1;
+  // draw top and bottom lines
+  @for $x from $x0 through $x1 {
+    $image: image.set-pixel($image, $x, $y0, $color-index);
+    $image: image.set-pixel($image, $x, $y1, $color-index);
+  } 
+  // draw left and right lines
+  @for $y from $y0 through $y1 {
+    $image: image.set-pixel($image, $x0, $y, $color-index);
+    $image: image.set-pixel($image, $x1, $y, $color-index);
+  }
   @return $image;
 }
 

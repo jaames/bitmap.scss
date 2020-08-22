@@ -1,4 +1,6 @@
-// ref: https://github.com/jaames/flipnote.js/blob/master/src/encoders/bmp.ts
+// ref: 
+// http://www.ece.ualberta.ca/~elliott/ee552/studentAppNotes/2003_w/misc/bmp_file_format/bmp_file_format.htm
+// https://github.com/jaames/flipnote.js/blob/master/src/encoders/bmp.ts
 
 @use '../encoding/base64' as b64;
 @use '../util/bytearray';
@@ -50,9 +52,9 @@
 
 @function get-dib-header($width, $height, $bpp, $num-colors) {
   $image-size: $width * $height * ($bpp / 8);
-  $view: dataview.alloc(108);
-  // dib header size (using BITMAPV4HEADER variant)
-  $view: dataview.set-uint32($view, 108);
+  $view: dataview.alloc(40);
+  // dib header size (using BITMAPINFOHEADER variant)
+  $view: dataview.set-uint32($view, 40);
   // image dimensions
   $view: dataview.set-uint32($view, $width);
   $view: dataview.set-uint32($view, $height);
@@ -71,15 +73,6 @@
   $view: dataview.set-uint32($view, $num-colors);
   // number of important colors - 0
   $view: dataview.set-uint32($view, 0);
-  // 32-bit channel masks - red, green, blue and alpha
-  $view: dataview.set-bytes($view, (
-    0, 255, 0, 0,
-    0, 0, 255, 0,
-    0, 0, 0, 255,
-    255, 0, 0, 0,
-  ));
-  // LCS_WINDOWS_COLOR_SPACE 'Win '
-  $view: dataview.set-ascii($view, 'Win ');
   @return $view;
 }
 
