@@ -1,3 +1,4 @@
+@use 'sass:math';
 @use '../encoding/ascii';
 @use './bytearray';
 @use './bitwise' as bw;
@@ -49,6 +50,7 @@
 @function set-uint16($dataview, $value: 0) {
   $ptr: map-get($dataview, ptr);
   $bytes: map-get($dataview, bytes);
+  $value: math.clamp(0, $value, 65535);
   $b1: bw.AND($value, 255);
   $b2: bw.AND(bw.RSHIFT($value, 8), 255);
   $bytes: set-nth($bytes, $ptr, $b1);
@@ -62,6 +64,7 @@
 @function set-uint32($dataview, $value: 0) {
   $ptr: map-get($dataview, ptr);
   $bytes: map-get($dataview, bytes);
+  $value: math.clamp(0, $value, 4294967296);
   $b1: bw.AND($value, 255);
   $b2: bw.AND(bw.RSHIFT($value, 8), 255);
   $b3: bw.AND(bw.RSHIFT($value, 16), 255);

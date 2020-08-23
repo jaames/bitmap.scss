@@ -21,4 +21,91 @@ In addition -- and this should go without saying, but I know what r/webdev brodu
 
 ## Usage
 
-hey don't
+A basic overview can be found in `src/main.scss`. 
+
+### Image
+
+This represents an unpacked image structure with a pallete and dimension values.
+
+#### Image API
+
+**image.create( $width, $height, $num-colors )**
+
+Returns a new image spanning (width, height) pixels and with the specified number of color slots. Max color slots is currently `256`.
+
+**image.set-palette-color( $image, $color-index, $color )**
+
+Sets a color in the image's color palette from any valid CSS color value. Palette index 0 is used as the background color. Returns the modified image struct.
+
+**image.set-pixel( $image, $x, $y, $color-index )**
+
+Sets a pixel at (x, y) to $color-index. Returns the modified image struct.
+
+### Drawing Context
+
+This is used for drawing basic things into an image structure, it can be used with a number of functions that can modify a drawing context to draw stuff into it. They will return the new modified drawing context.
+
+So for example, to create a context, update colors, and then draw a line:
+
+```
+// Create 64x64 drawing context w/ 16 colors
+$ctx: ctx.create(64, 64, 16);
+
+// Set up palette
+$ctx: ctx.set-palette-color($ctx, 0, #fff);
+$ctx: ctx.set-palette-color($ctx, 1, #000);
+
+// Set the active color index to use when drawing the line
+$ctx: ctx.set-active-color($ctx, 1);
+
+// Draw a line
+$ctx: ctx.line($ctx, 0, 0, 20, 20);
+```
+
+#### Drawing Context API
+
+**ctx.create( $width, $height, $num-colors )**
+
+Creates a drawing context and a backing image spanning (width, height) pixels and with the specified number of color slots. Max color slots is currently `256`.
+
+**ctx.from-image( $image )**
+
+Creates a drawing context from a given image.
+
+**ctx.to-image( $ctx )**
+
+Returns an image struct from a given drawing context.
+
+**ctx.set-palette-color( $ctx, $color-index, $color )**
+
+Sets a color in the image's color palette from any valid CSS color value. Palette index 0 is used as the background color.
+
+**ctx.set-active-color( $color-index )**
+
+Sets the color to use in subsequent drawing commands. Color index 1 is used by default.
+
+**ctx.line( $ctx, $x0, $y0, $x1, $y1 )**
+
+Draws a line from (x0, y0) to (x1, y1).
+
+**ctx.rect( $ctx, $x0, $y0, $width, $height )**
+
+Draws a rectangle spanning (width, height) pixels using (x0, y0) as the top-left corner.
+
+**ctx.circle( $ctx, $cx, $cy, $radius )**
+
+Draws a circle with the defined radius using (cx, cy) as the midpoint.
+
+### Bitmap Encoder
+
+The bitmap encoder takes an image struct and returns packed .bmp data. 
+
+#### Bitmap Encoder API
+
+**bitmap.encode( $image )**
+
+Encodes an image struct into a bitmap file, and returns the bytearray for the image file.
+
+**bitmap.encode-to-dataurl( $image )**
+
+Encodes an image struct into a bitmap file, and returns a base64-encoded data URL that can be used as a CSS background image.

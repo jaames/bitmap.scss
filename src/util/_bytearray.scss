@@ -1,7 +1,17 @@
 @function alloc($size: 1, $fill_value: 0) {
-  $result: ();
-  @for $i from 1 through $size {
-    $result: append($result, $fill_value);
+  $result: (0);
+  $i: 1;
+  @while $i < $size {
+    // use join() to double the array size in one loop iteration if possible
+    @if $i * 2 < $size {
+      $result: join($result, $result);
+      $i: $i * 2;
+    }
+    // use append() to fill the rest
+    @else {
+      $result: append($result, $fill_value);
+      $i: $i + 1;
+    }
   }
   @return $result;
 }

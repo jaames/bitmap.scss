@@ -1,5 +1,3 @@
-
-@use './graphics/image';
 @use './graphics/ctx';
 @use './io/bmp';
 
@@ -11,21 +9,24 @@ $ctx: ctx.set-palette-color($ctx, 1, #000);
 $ctx: ctx.set-palette-color($ctx, 2, #f00);
 $ctx: ctx.set-palette-color($ctx, 3, #0f0);
 $ctx: ctx.set-palette-color($ctx, 4, #00f);
+$ctx: ctx.set-palette-color($ctx, 5, #f0f);
 
 // draw line
 $ctx: ctx.line($ctx, 0, 0, 20, 20);
 
 // change color and draw circle
 $ctx: ctx.set-active-color($ctx, 2);
-$ctx: ctx.circle($ctx, 20, 20, 20);
-
-// change color and draw circle
-$ctx: ctx.set-active-color($ctx, 3);
 $ctx: ctx.circle($ctx, 30, 30, 20);
 
-$ctx: ctx.set-active-color($ctx, 1);
-$ctx: ctx.rect($ctx, 1, 1, 4, 4);
-// $ctx: ctx.circle($ctx, 40, 40, 20);
+$ctx: ctx.set-active-color($ctx, 3);
+$ctx: ctx.circle($ctx, 40, 40, 15);
+
+$ctx: ctx.set-active-color($ctx, 4);
+$ctx: ctx.circle($ctx, 50, 50, 10);
+
+// draw rect
+$ctx: ctx.set-active-color($ctx, 5);
+$ctx: ctx.rect($ctx, 0, 0, 64, 64);
 
 // extract image from drawing contect
 $image: ctx.to-image($ctx);

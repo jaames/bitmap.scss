@@ -8,6 +8,13 @@
   );
 }
 
+@function from-image($image) {
+  @return (
+    image: $image,
+    color: 1,
+  );
+}
+
 @function to-image($ctx) {
   @return map-get($ctx, image);
 }

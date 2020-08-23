@@ -13,19 +13,19 @@
   $palette: map-get($image, palette);
   $pixels: map-get($image, pixels);
 
-  $pixels: pad-pixels($pixels, $width, $height);
+  $pixels: _pad-pixels($pixels, $width, $height);
 
   $palette-size: length($palette);
   $pixels-size: length($pixels);
 
-  $dib-view: get-dib-header($width, $height, 8, $num-colors);
+  $dib-view: _get-dib-header($width, $height, 8, $num-colors);
   $dib-bytes: dataview.to-bytearray($dib-view);
   $dib-size: length($dib-bytes);
 
   $file-size: 14 + $dib-size + $palette-size + $pixels-size;
   $pixeldata-ptr: 14 + $dib-size + $palette-size;
 
-  $header-view: get-file-header($file-size, $pixeldata-ptr);
+  $header-view: _get-file-header($file-size, $pixeldata-ptr);
   $header-bytes: dataview.to-bytearray($header-view);
 
   $bmp: join($header-bytes, $dib-bytes);
@@ -38,7 +38,7 @@
   @return url('data:image/bmp;base64,' + b64.encode-bytes($bytes));
 }
 
-@function get-file-header($file-size, $pixeldata-ptr) {
+@function _get-file-header($file-size, $pixeldata-ptr) {
   $view: dataview.alloc(14);
   // header magic
   $view: dataview.set-ascii($view, 'BM');
@@ -50,7 +50,7 @@
   @return $view;
 }
 
-@function get-dib-header($width, $height, $bpp, $num-colors) {
+@function _get-dib-header($width, $height, $bpp, $num-colors) {
   $image-size: $width * $height * ($bpp / 8);
   $view: dataview.alloc(40);
   // dib header size (using BITMAPINFOHEADER variant)
@@ -76,7 +76,7 @@
   @return $view;
 }
 
-@function pad-pixels($src-pixels, $width, $height) {
+@function _pad-pixels($src-pixels, $width, $height) {
   $src-size: length($src-pixels);
   // x axis should be padded to nearest multiple of 4
   $pad-width: ceil($width / 4) * 4;
@@ -86,7 +86,11 @@
     $src-ptr: ($src-size - (($y + 1) * $width)) + 1;
     $dst-ptr: ($y * $pad-width) + 1;
     @for $x from 0 to $width {
-      $dst-pixels: set-nth($dst-pixels, $dst-ptr + $x, nth($src-pixels, $src-ptr + $x));
+      $src-pixel: nth($src-pixels, $src-ptr + $x);
+      // optimisation: dst is already 0, so we can avoid an expensive set-nth in this case
+      @if $src-pixel != 0 {
+        $dst-pixels: set-nth($dst-pixels, $dst-ptr + $x, $src-pixel);
+      }
     } 
   }
   @return $dst-pixels;
