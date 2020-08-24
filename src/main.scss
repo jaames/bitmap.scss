@@ -1,5 +1,5 @@
 @use './graphics/ctx';
-@use './io/bmp';
+@use './graphics/image';
 
 // create 64x64 drawing context w/ 16 colors
 $ctx: ctx.create(64, 64, 16);
@@ -32,7 +32,7 @@ $ctx: ctx.rect($ctx, 0, 0, 64, 64);
 $image: ctx.to-image($ctx);
 
 // encode image as a bitmap dataurl
-$data: bmp.encode-to-dataurl($image);
+$data: image.encode-bitmap-dataurl($image);
 
 body {
   background-image: $data;
